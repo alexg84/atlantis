@@ -64,13 +64,9 @@ jobs:
             const planOutput = fs.readFileSync('plan_output.txt', 'utf8');
             const output = `#### Terraform Plan 📖
             
-            <details><summary>Show Plan</summary>
-            
-            \`\`\`terraform
+            \`\`\`hcl
             ${planOutput}
             \`\`\`
-            
-            </details>
             
             *Pusher: @${{ github.actor }}, Action: \`${{ github.event_name }}\`*
             
