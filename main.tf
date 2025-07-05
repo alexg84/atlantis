@@ -43,7 +43,7 @@ resource "local_file" "test_config" {
 # Simple null resource for testing
 resource "null_resource" "simple_test" {
   triggers = {
-    app_name = var.app_name
+    app_name       = var.app_name
     config_content = local_file.test_config.content
   }
 
