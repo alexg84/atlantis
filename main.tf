@@ -23,30 +23,14 @@ resource "random_string" "app_suffix" {
   upper   = false
 }
 
-resource "random_integer" "port" {
-  min = 8000
-  max = 9000
-}
-
-# Simple local file for testing
-resource "local_file" "test_config" {
-  content = templatefile("${path.module}/templates/simple-config.tpl", {
-    app_name    = var.app_name
-    environment = var.environment
-    port        = random_integer.port.result
-    suffix      = random_string.app_suffix.result
-  })
-  filename = "${path.module}/generated/test-config.json"
-}
-
 # Simple null resource for testing
 resource "null_resource" "simple_test" {
   triggers = {
-    app_name       = var.app_name
-    config_content = local_file.test_config.content
+    app_name = var.app_name
+    suffix   = random_string.app_suffix.result
   }
 
   provisioner "local-exec" {
-    command = "echo 'Testing Atlantis with ${var.app_name} in ${var.environment} environment'"
+    command = "echo 'Testing Atlantis with ${var.app_name}-${random_string.app_suffix.result} in ${var.environment} environment'"
   }
 }
