@@ -1,0 +1,211 @@
+name: Terraform PR Automation
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+jobs:
+  terraform-check:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.5.0
+
+      - name: Terraform Init
+        run: terraform init
+
+      - name: Terraform Format
+        id: fmt
+        run: terraform fmt -check
+        continue-on-error: true
+
+      - name: Terraform Validate
+        id: validate
+        run: terraform validate
+
+      - name: Terraform Plan
+        id: plan
+        run: |
+          terraform plan -no-color -out=tfplan 2>&1 | tee plan.txt
+        continue-on-error: true
+
+      - name: Comment PR
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const plan = fs.readFileSync('plan.txt', 'utf8');
+            const fmt = '${{ steps.fmt.outcome }}';
+            const validate = '${{ steps.validate.outcome }}';
+            const planOutcome = '${{ steps.plan.outcome }}';
+            
+            const output = `#### Terraform Automation Results 🚀
+            
+            | Check | Status |
+            |-------|--------|
+            | 🎨 Format | ${fmt === 'success' ? '✅ Passed' : '❌ Failed'} |
+            | 🔍 Validate | ${validate === 'success' ? '✅ Passed' : '❌ Failed'} |
+            | 📋 Plan | ${planOutcome === 'success' ? '✅ Success' : '❌ Failed'} |
+            
+            <details><summary>📖 Terraform Plan Output</summary>
+            
+            \`\`\`terraform
+            ${plan}
+            \`\`\`
+            
+            </details>
+            
+            ---
+            
+            **💬 Comment Commands:**
+            - Comment \`/terraform-apply\` to apply this plan
+            - Comment \`/terraform-plan\` to re-run the plan
+            - Comment \`/terraform-fmt\` to format the code
+            
+            *🤖 Automated by GitHub Actions*
+            `;
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: output
+            });
+
+  terraform-command:
+    if: github.event_name == 'issue_comment' && github.event.issue.pull_request && startsWith(github.event.comment.body, '/terraform')
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Get PR details
+        id: pr
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const pr = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number
+            });
+            return {
+              ref: pr.data.head.ref,
+              sha: pr.data.head.sha
+            };
+
+      - name: Checkout PR
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ fromJson(steps.pr.outputs.result).sha }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.5.0
+
+      - name: Parse Command
+        id: command
+        run: |
+          COMMENT="${{ github.event.comment.body }}"
+          echo "Full comment: $COMMENT"
+          
+          if [[ "$COMMENT" == *"/terraform-apply"* ]]; then
+            echo "action=apply" >> $GITHUB_OUTPUT
+          elif [[ "$COMMENT" == *"/terraform-plan"* ]]; then
+            echo "action=plan" >> $GITHUB_OUTPUT
+          elif [[ "$COMMENT" == *"/terraform-fmt"* ]]; then
+            echo "action=fmt" >> $GITHUB_OUTPUT
+          else
+            echo "action=unknown" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Terraform Init
+        if: steps.command.outputs.action != 'unknown'
+        run: terraform init
+
+      - name: Execute Terraform Command
+        id: execute
+        run: |
+          case "${{ steps.command.outputs.action }}" in
+            "plan")
+              echo "🔍 Running Terraform Plan..."
+              terraform plan -no-color 2>&1 | tee result.txt
+              ;;
+            "apply")
+              echo "🚀 Running Terraform Apply..."
+              terraform apply -auto-approve -no-color 2>&1 | tee result.txt
+              ;;
+            "fmt")
+              echo "🎨 Running Terraform Format..."
+              terraform fmt -recursive -write=true
+              echo "Code formatted successfully!" > result.txt
+              ;;
+            *)
+              echo "❌ Unknown command" > result.txt
+              exit 1
+              ;;
+          esac
+
+      - name: Comment Result
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const action = '${{ steps.command.outputs.action }}';
+            const success = '${{ steps.execute.outcome }}' === 'success';
+            
+            let result = '';
+            try {
+              result = fs.readFileSync('result.txt', 'utf8');
+            } catch (error) {
+              result = 'No output available';
+            }
+            
+            const emoji = {
+              'plan': '📋',
+              'apply': '🚀',
+              'fmt': '🎨'
+            };
+            
+            const actionName = {
+              'plan': 'Plan',
+              'apply': 'Apply',
+              'fmt': 'Format'
+            };
+            
+            const status = success ? '✅ Success' : '❌ Failed';
+            
+            const output = `#### ${emoji[action] || '🔧'} Terraform ${actionName[action] || 'Command'} ${status}
+            
+            <details><summary>📄 Show Output</summary>
+            
+            \`\`\`terraform
+            ${result}
+            \`\`\`
+            
+            </details>
+            
+            *🎯 Triggered by: @${{ github.event.comment.user.login }}*
+            `;
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: output
+            });
