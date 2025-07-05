@@ -62,13 +62,11 @@ jobs:
             | 🔍 Validate | ${validate === 'success' ? '✅ Passed' : '❌ Failed'} |
             | 📋 Plan | ${planOutcome === 'success' ? '✅ Success' : '❌ Failed'} |
             
-            <details><summary>📖 Terraform Plan Output</summary>
+            ### � Terraform Plan
             
-            \`\`\`terraform
+            \`\`\`hcl
             ${plan}
             \`\`\`
-            
-            </details>
             
             ---
             
