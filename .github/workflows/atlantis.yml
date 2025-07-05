@@ -10,7 +10,6 @@ on:
 
 env:
   TF_VERSION: "1.5.0"
-  ATLANTIS_VERSION: "0.24.5"
 
 jobs:
   atlantis:
@@ -35,14 +34,6 @@ jobs:
         uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: ${{ env.TF_VERSION }}
-
-      - name: Setup Atlantis
-        run: |
-          curl -LOs https://github.com/runatlantis/atlantis/releases/download/v${{ env.ATLANTIS_VERSION }}/atlantis_linux_amd64.zip
-          unzip atlantis_linux_amd64.zip
-          chmod +x atlantis
-          sudo mv atlantis /usr/local/bin/
-          atlantis version
 
       - name: Terraform Format Check
         if: github.event_name == 'pull_request'
