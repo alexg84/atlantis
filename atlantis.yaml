@@ -1,0 +1,21 @@
+version: 3
+projects:
+- name: test-app
+  dir: .
+  workflow: default
+  autoplan:
+    when_modified: ["*.tf", "*.tfvars"]
+    enabled: true
+  apply_requirements: ["approved"]
+  
+workflows:
+  default:
+    plan:
+      steps:
+      - init
+      - plan:
+          extra_args: ["-out=atlantis.tfplan"]
+    apply:
+      steps:
+      - apply:
+          extra_args: ["atlantis.tfplan"]
