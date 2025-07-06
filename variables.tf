@@ -7,7 +7,7 @@ variable "app_name" {
 variable "environment" {
   description = "Environment (dev, staging, prod)"
   type        = string
-  default     = "dev"
+  default     = "poc"
 
   validation {
     condition     = contains(["dev", "staging", "prod"], var.environment)
