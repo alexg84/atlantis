@@ -69,11 +69,6 @@ jobs:
             \`\`\`
             
             *Pusher: @${{ github.actor }}, Action: \`${{ github.event_name }}\`*
-            
-            **Available Atlantis Commands:**
-            - \`atlantis plan\` - Run terraform plan
-            - \`atlantis apply\` - Run terraform apply
-            - \`atlantis help\` - Show help
             `;
             
             github.rest.issues.createComment({
