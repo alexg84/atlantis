@@ -45,25 +45,13 @@ jobs:
         with:
           script: |
             const fs = require('fs');
-            let plan = fs.readFileSync('plan.txt', 'utf8');
-            
-            // Truncate output if too large to prevent comment size limits
-            const MAX_SIZE = 60000;
-            let truncated = false;
-            if (plan.length > MAX_SIZE) {
-              plan = plan.substring(0, MAX_SIZE);
-              truncated = true;
-            }
+            const plan = fs.readFileSync('plan.txt', 'utf8');
             
             const output = `### Terraform Plan
             
-            <details><summary>📄 Show Plan Output</summary>
-            
             \`\`\`hcl
-            ${plan}${truncated ? '\n\n... (output truncated due to size limit)' : ''}
+            ${plan}
             \`\`\`
-            
-            </details>
             
             *🤖 Automated by GitHub Actions*
             `;
@@ -160,14 +148,6 @@ jobs:
               result = 'No output available';
             }
             
-            // Truncate output if too large to prevent comment size limits
-            const MAX_SIZE = 60000;
-            let truncated = false;
-            if (result.length > MAX_SIZE) {
-              result = result.substring(0, MAX_SIZE);
-              truncated = true;
-            }
-            
             const emoji = {
               'plan': '📋',
               'apply': '🚀',
@@ -184,13 +164,9 @@ jobs:
             
             const output = `#### ${emoji[action] || '🔧'} Terraform ${actionName[action] || 'Command'} ${status}
             
-            <details><summary>📄 Show Output</summary>
-            
             \`\`\`terraform
-            ${result}${truncated ? '\n\n... (output truncated due to size limit)' : ''}
+            ${result}
             \`\`\`
-            
-            </details>
             
             *🎯 Triggered by: @${{ github.event.comment.user.login }}*
             `;
