@@ -45,16 +45,25 @@ jobs:
         with:
           script: |
             const fs = require('fs');
-            const plan = fs.readFileSync('plan.txt', 'utf8');
-            const fmt = '${{ steps.fmt.outcome }}';
-            const validate = '${{ steps.validate.outcome }}';
-            const planOutcome = '${{ steps.plan.outcome }}';
+            let plan = fs.readFileSync('plan.txt', 'utf8');
             
-            const output = `###  Terraform Plan
+            // Truncate output if too large to prevent comment size limits
+            const MAX_SIZE = 60000;
+            let truncated = false;
+            if (plan.length > MAX_SIZE) {
+              plan = plan.substring(0, MAX_SIZE);
+              truncated = true;
+            }
+            
+            const output = `### Terraform Plan
+            
+            <details><summary>📄 Show Plan Output</summary>
             
             \`\`\`hcl
-            ${plan}
+            ${plan}${truncated ? '\n\n... (output truncated due to size limit)' : ''}
             \`\`\`
+            
+            </details>
             
             *🤖 Automated by GitHub Actions*
             `;
@@ -151,6 +160,14 @@ jobs:
               result = 'No output available';
             }
             
+            // Truncate output if too large to prevent comment size limits
+            const MAX_SIZE = 60000;
+            let truncated = false;
+            if (result.length > MAX_SIZE) {
+              result = result.substring(0, MAX_SIZE);
+              truncated = true;
+            }
+            
             const emoji = {
               'plan': '📋',
               'apply': '🚀',
@@ -170,7 +187,7 @@ jobs:
             <details><summary>📄 Show Output</summary>
             
             \`\`\`terraform
-            ${result}
+            ${result}${truncated ? '\n\n... (output truncated due to size limit)' : ''}
             \`\`\`
             
             </details>
