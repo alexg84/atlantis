@@ -2,13 +2,8 @@ name: Terraform PR Automation
 
 on:
   pull_request:
-    branches:            ### 📋 Terraform Plan
-            
-            \`\`\`hcl
-            ${plan}
-            \`\`\`
-            
-            *🤖 Automated by GitHub Actions*pes: [opened, synchronize, reopened]
+    branches: [main]
+    types: [opened, synchronize, reopened]
   issue_comment:
     types: [created]
 
