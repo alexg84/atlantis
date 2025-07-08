@@ -54,26 +54,11 @@ jobs:
             const validate = '${{ steps.validate.outcome }}';
             const planOutcome = '${{ steps.plan.outcome }}';
             
-            const output = `#### Terraform Automation Results 🚀
-            
-            | Check | Status |
-            |-------|--------|
-            | 🎨 Format | ${fmt === 'success' ? '✅ Passed' : '❌ Failed'} |
-            | 🔍 Validate | ${validate === 'success' ? '✅ Passed' : '❌ Failed'} |
-            | 📋 Plan | ${planOutcome === 'success' ? '✅ Success' : '❌ Failed'} |
-            
-            ### � Terraform Plan
+            const output = `###  Terraform Plan
             
             \`\`\`hcl
             ${plan}
             \`\`\`
-            
-            ---
-            
-            **💬 Comment Commands:**
-            - Comment \`/terraform-apply\` to apply this plan
-            - Comment \`/terraform-plan\` to re-run the plan
-            - Comment \`/terraform-fmt\` to format the code
             
             *🤖 Automated by GitHub Actions*
             `;
