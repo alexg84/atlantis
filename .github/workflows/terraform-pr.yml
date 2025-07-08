@@ -52,8 +52,6 @@ jobs:
             \`\`\`hcl
             ${plan}
             \`\`\`
-            
-            *🤖 Automated by GitHub Actions*
             `;
             
             github.rest.issues.createComment({
@@ -167,8 +165,6 @@ jobs:
             \`\`\`terraform
             ${result}
             \`\`\`
-            
-            *🎯 Triggered by: @${{ github.event.comment.user.login }}*
             `;
             
             github.rest.issues.createComment({
