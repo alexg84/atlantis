@@ -71,16 +71,11 @@ jobs:
               } catch (e) {
                 plan = 'No plan output found.';
               }
-              let body = '';
-              if (plan.length < MAX_COMMENT_SIZE) {
-                body = `#### 📋 Terraform Plan\n\n\u0060\u0060\u0060terraform\n${plan}\n\u0060\u0060\u0060`;
-              } else {
-                // Artifact download URL pattern: https://github.com/<owner>/<repo>/actions/runs/<run_id>
-                const runId = process.env.GITHUB_RUN_ID;
-                const repo = process.env.GITHUB_REPOSITORY;
-                const artifactUrl = `https://github.com/${repo}/actions/runs/${runId}`;
-                body = `#### 📋 Terraform Plan\n\nPlan output is too large to display. [Download the plan artifact here](${artifactUrl})`;
-              }
+              // Always post the artifact link, regardless of plan size
+              const runId = process.env.GITHUB_RUN_ID;
+              const repo = process.env.GITHUB_REPOSITORY;
+              const artifactUrl = `https://github.com/${repo}/actions/runs/${runId}`;
+              let body = `#### 📋 Terraform Plan\n\n[Download the plan artifact here](${artifactUrl})`;
               github.rest.issues.createComment({
                 issue_number: context.issue.number,
                 owner: context.repo.owner,
