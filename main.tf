@@ -16,21 +16,10 @@ terraform {
   }
 }
 
-# Simple random resources for testing
-resource "random_string" "app_suffix" {
-  length  = 8
+# Simple random string for Atlantis POC testing
+resource "random_string" "atlantis_poc" {
+  length  = 10
   special = false
   upper   = false
 }
 
-# Simple null resource for testing
-resource "null_resource" "simple_test" {
-  triggers = {
-    app_name = var.app_name
-    suffix   = random_string.app_suffix.result
-  }
-
-  provisioner "local-exec" {
-    command = "echo 'Testing Atlantis with ${var.app_name}-${random_string.app_suffix.result} in ${var.environment} environment'"
-  }
-}
