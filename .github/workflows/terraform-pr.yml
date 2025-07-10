@@ -90,7 +90,6 @@ jobs:
 
         # Step 6: Only upload the plan output as an artifact (no PR comment)
         - name: Upload Plan Artifact
-          id: upload_artifact
           uses: actions/upload-artifact@v4
           with:
             name: plan-output
