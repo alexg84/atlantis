@@ -19,47 +19,53 @@ jobs:
     container: hashicorp/terraform:1.5
     
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+        # Step 1: Checkout the PR branch from the repository
+        - name: Checkout
+          uses: actions/checkout@v4
 
-      - name: Terraform Init
-        run: terraform init
+        # Step 2: Initialize Terraform (downloads providers, checks config)
+        - name: Terraform Init
+          run: terraform init
 
-      - name: Terraform Format
-        id: fmt
-        run: terraform fmt -check
-        continue-on-error: true
+        # Step 3: Check Terraform file formatting (enforces style)
+        - name: Terraform Format
+          id: fmt
+          run: terraform fmt -check
+          continue-on-error: true
 
-      - name: Terraform Validate
-        id: validate
-        run: terraform validate
+        # Step 4: Validate Terraform configuration (syntax and logic check)
+        - name: Terraform Validate
+          id: validate
+          run: terraform validate
 
-      - name: Terraform Plan
-        id: plan
-        run: |
-          terraform plan -no-color -out=tfplan 2>&1 | tee plan.txt
-        continue-on-error: true
+        # Step 5: Run terraform plan and save output to a file
+        - name: Terraform Plan
+          id: plan
+          run: |
+            terraform plan -no-color -out=tfplan 2>&1 | tee plan.txt
+          continue-on-error: true
 
-      - name: Comment PR
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const fs = require('fs');
-            const plan = fs.readFileSync('plan.txt', 'utf8');
-            
-            const output = `### Terraform Plan
-            
-            \`\`\`hcl
-            ${plan}
-            \`\`\`
-            `;
-            
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: output
-            });
+        # Step 6: Post the plan output as an automatic PR comment
+        - name: Comment PR
+          uses: actions/github-script@v7
+          with:
+            script: |
+              const fs = require('fs');
+              const plan = fs.readFileSync('plan.txt', 'utf8');
+              
+              const output = `### Terraform Plan
+              
+              \`\`\`hcl
+              ${plan}
+              \`\`\`
+              `;
+              
+              github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: output
+              });
 
   terraform-command:
     if: github.event_name == 'issue_comment' && github.event.issue.pull_request && startsWith(github.event.comment.body, '/terraform')
