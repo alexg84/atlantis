@@ -45,27 +45,12 @@ jobs:
             terraform plan -no-color -out=tfplan 2>&1 | tee plan.txt
           continue-on-error: true
 
-        # Step 6: Post the plan output as an automatic PR comment
-        - name: Comment PR
-          uses: actions/github-script@v7
+        # Step 6: Only upload the plan output as an artifact (no PR comment)
+        - name: Upload Plan Artifact
+          uses: actions/upload-artifact@v4
           with:
-            script: |
-              const fs = require('fs');
-              const plan = fs.readFileSync('plan.txt', 'utf8');
-              
-              const output = `### Terraform Plan
-              
-              \`\`\`hcl
-              ${plan}
-              \`\`\`
-              `;
-              
-              github.rest.issues.createComment({
-                issue_number: context.issue.number,
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                body: output
-              });
+            name: plan-output
+            path: plan.txt
 
   terraform-command:
     if: github.event_name == 'issue_comment' && github.event.issue.pull_request && startsWith(github.event.comment.body, '/terraform')
