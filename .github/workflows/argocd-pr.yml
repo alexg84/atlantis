@@ -60,11 +60,17 @@ jobs:
             ls -la nginx-app/
             
             # Run diff against the nginx-app with correct syntax from documentation
-            # The key insight: ArgoCD application is configured with path="nginx-app"
-            # So when we use --local, we need to point to the directory containing that path
-            # Current working directory is the repo root, and it contains nginx-app/
-            echo "Trying diff with current directory as local repo..."
-            /shared/argocd app diff argocd/nginx-app --local . --server-side-generate 2>&1 | tee diff.txt
+            # Based on the error, let's try without --server-side-generate first
+            # and use the nginx-app directory directly
+            echo "Trying diff with nginx-app directory as local path..."
+            /shared/argocd app diff argocd/nginx-app --local nginx-app 2>&1 | tee diff.txt
+            
+            # If that fails, also try with full path
+            if grep -q "fatal" diff.txt; then
+                echo "First attempt failed, trying with absolute path..."
+                /shared/argocd app diff argocd/nginx-app --local $(pwd)/nginx-app 2>&1 | tee diff2.txt
+                cat diff2.txt >> diff.txt
+            fi
             
             echo "✅ Diff completed successfully"
             echo "📄 Diff output:"
