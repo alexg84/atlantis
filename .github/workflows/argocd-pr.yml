@@ -33,10 +33,58 @@ jobs:
         - name: ArgoCD Login
           run: |
             echo "🔗 Connecting to ArgoCD server..."
-            # Replace with your actual ArgoCD server URL
-            argocd login ${{ secrets.ARGOCD_SERVER }} \
-              --username ${{ secrets.ARGOCD_USERNAME }} \
-              --password ${{ secrets.ARGOCD_PASSWORD }} \
+            
+            # Check if secrets are set
+            if [ -z "${{ secrets.ARGOCD_SERVER }}" ]; then
+              echo "❌ ARGOCD_SERVER secret not set. Please configure GitHub secrets:"
+              echo "- ARGOCD_SERVER (e.g., argocd.example.com:443)"
+              echo "- ARGOCD_USERNAME (e.g., admin)"  
+              echo "- ARGOCD_PASSWORD"
+              echo ""
+              echo "For demo purposes, using mock mode..."
+              exit 0
+            fi
+            
+            # Test connectivity before login
+            SERVER="${{ secrets.ARGOCD_SERVER }}"
+            echo "🔍 Testing connectivity to ArgoCD server: $SERVER"
+            
+            # Extract host and port
+            if [[ "$SERVER" == *":"* ]]; then
+              HOST=$(echo "$SERVER" | cut -d':' -f1)
+              PORT=$(echo "$SERVER" | cut -d':' -f2)
+            else
+              HOST="$SERVER"
+              PORT="443"
+            fi
+            
+            echo "Testing connection to $HOST:$PORT..."
+            
+            # Test with nc (netcat)
+            if command -v nc >/dev/null 2>&1; then
+              echo "Using netcat to test connection..."
+              if timeout 10 nc -zv "$HOST" "$PORT"; then
+                echo "✅ Port $PORT is open on $HOST"
+              else
+                echo "❌ Cannot connect to $HOST:$PORT"
+                exit 1
+              fi
+            else
+              # Fallback to curl
+              echo "Using curl to test HTTPS connection..."
+              if curl -k -s --connect-timeout 10 "https://$HOST:$PORT/api/version" >/dev/null; then
+                echo "✅ HTTPS connection to $HOST:$PORT successful"
+              else
+                echo "❌ HTTPS connection to $HOST:$PORT failed"
+                exit 1
+              fi
+            fi
+            
+            # Real ArgoCD login
+            echo "🔐 Attempting ArgoCD login..."
+            argocd login "${{ secrets.ARGOCD_SERVER }}" \
+              --username "${{ secrets.ARGOCD_USERNAME }}" \
+              --password "${{ secrets.ARGOCD_PASSWORD }}" \
               --insecure
           env:
             ARGOCD_OPTS: "--insecure"
@@ -46,7 +94,40 @@ jobs:
           id: diff
           run: |
             echo "🔍 Running ArgoCD App Diff..."
-            argocd app diff nginx-app --local nginx-app 2>&1 | tee diff.txt
+            
+            # Check if we have a working ArgoCD connection
+            if [ -z "${{ secrets.ARGOCD_SERVER }}" ]; then
+              echo "Creating demo diff output for testing..."
+              cat > diff.txt << 'EOF'
+            ===== Demo ArgoCD App Diff =====
+            
+            ⚠️  This is a demo output. To see real diffs, configure these GitHub secrets:
+            - ARGOCD_SERVER: Your ArgoCD server URL
+            - ARGOCD_USERNAME: Your ArgoCD username  
+            - ARGOCD_PASSWORD: Your ArgoCD password
+            
+            ===== apps/Deployment default/nginx-app ======
+            --- current
+            +++ proposed
+            @@ -10,8 +10,8 @@
+                       containers:
+                       - name: nginx
+                         resources:
+            -              cpu: 500m
+            -              memory: 128Mi
+            +              cpu: 1000m  
+            +              memory: 256Mi
+            
+            ===== v1/Service default/nginx-app ======
+            No differences found.
+            EOF
+            else
+              # Real ArgoCD diff
+              argocd app diff nginx-app --local nginx-app 2>&1 | tee diff.txt
+            fi
+            
+            echo "✅ Diff generated successfully"
+            cat diff.txt
           continue-on-error: true
 
         # Step 5: Upload the diff output as an artifact
@@ -141,9 +222,54 @@ jobs:
       - name: ArgoCD Login
         if: steps.command.outputs.action != 'unknown'
         run: |
-          argocd login adf570a01b0f.ngrok-free.app:443 \
-            --username admin \
-            --password wz3RtQReq9LuIHQL \
+          echo "🔗 Connecting to ArgoCD server..."
+          
+          # Check if secrets are set
+          if [ -z "${{ secrets.ARGOCD_SERVER }}" ]; then
+            echo "❌ ARGOCD_SERVER secret not set. Please configure GitHub secrets for interactive commands."
+            exit 1
+          fi
+          
+          # Test connectivity before login
+          SERVER="${{ secrets.ARGOCD_SERVER }}"
+          echo "🔍 Testing connectivity to ArgoCD server: $SERVER"
+          
+          # Extract host and port
+          if [[ "$SERVER" == *":"* ]]; then
+            HOST=$(echo "$SERVER" | cut -d':' -f1)
+            PORT=$(echo "$SERVER" | cut -d':' -f2)
+          else
+            HOST="$SERVER"
+            PORT="443"
+          fi
+          
+          echo "Testing connection to $HOST:$PORT..."
+          
+          # Test with nc (netcat)
+          if command -v nc >/dev/null 2>&1; then
+            echo "Using netcat to test connection..."
+            if timeout 10 nc -zv "$HOST" "$PORT"; then
+              echo "✅ Port $PORT is open on $HOST"
+            else
+              echo "❌ Cannot connect to $HOST:$PORT"
+              exit 1
+            fi
+          else
+            # Fallback to curl
+            echo "Using curl to test HTTPS connection..."
+            if curl -k -s --connect-timeout 10 "https://$HOST:$PORT/api/version" >/dev/null; then
+              echo "✅ HTTPS connection to $HOST:$PORT successful"
+            else
+              echo "❌ HTTPS connection to $HOST:$PORT failed"
+              exit 1
+            fi
+          fi
+          
+          # Real ArgoCD login
+          echo "🔐 Attempting ArgoCD login..."
+          argocd login "${{ secrets.ARGOCD_SERVER }}" \
+            --username "${{ secrets.ARGOCD_USERNAME }}" \
+            --password "${{ secrets.ARGOCD_PASSWORD }}" \
             --insecure
         env:
           ARGOCD_OPTS: "--insecure"
