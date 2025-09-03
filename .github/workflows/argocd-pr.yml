@@ -32,10 +32,12 @@ jobs:
         # Step 3: Login to ArgoCD (using server and credentials from secrets)
         - name: ArgoCD Login
           run: |
-            argocd login 9a3e19de0b18.ngrok-free.app:443 \
+            argocd login f1da20b9bdcd.ngrok-free.app:80 \
               --username admin \
               --password wz3RtQReq9LuIHQL \
-              --insecure
+              --insecure \
+              --plaintext \
+              --grpc-web
           env:
             ARGOCD_OPTS: "--grpc-web"
 
@@ -139,10 +141,12 @@ jobs:
       - name: ArgoCD Login
         if: steps.command.outputs.action != 'unknown'
         run: |
-          argocd login 9a3e19de0b18.ngrok-free.app:443 \
+          argocd login f1da20b9bdcd.ngrok-free.app:80 \
             --username admin \
             --password wz3RtQReq9LuIHQL \
-            --insecure
+            --insecure \
+            --plaintext \
+            --grpc-web
         env:
           ARGOCD_OPTS: "--grpc-web"
 
