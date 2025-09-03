@@ -30,8 +30,9 @@ jobs:
             ls -la /shared/argocd
             /shared/argocd version --client
 
-        # Step 3: Login to ArgoCD (direct cluster service access)
-        - name: ArgoCD Login
+        # Step 3: Login to ArgoCD and Run Diff
+        - name: ArgoCD Login and Diff
+          id: diff
           run: |
             echo "🔗 Connecting to ArgoCD server in cluster..."
             
@@ -49,11 +50,6 @@ jobs:
               --insecure
             
             echo "✅ Successfully connected to ArgoCD!"
-
-        # Step 4: Run ArgoCD app diff
-        - name: ArgoCD App Diff
-          id: diff
-          run: |
             echo "🔍 Running ArgoCD App Diff..."
             
             # Run diff against the nginx-app with server-side generation
@@ -63,14 +59,14 @@ jobs:
             echo "📄 Diff output:"
             cat diff.txt
 
-        # Step 5: Upload the diff output as an artifact
+        # Step 4: Upload the diff output as an artifact
         - name: Upload Diff Artifact
           uses: actions/upload-artifact@v4
           with:
             name: argocd-diff-output
             path: diff.txt
 
-        # Step 6: Comment on PR with diff output or artifact link
+        # Step 5: Comment on PR with diff output or artifact link
         - name: Comment PR with Diff or Artifact Link
           uses: actions/github-script@v7
           env:
