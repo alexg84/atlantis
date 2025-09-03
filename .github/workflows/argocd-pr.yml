@@ -29,12 +29,12 @@ jobs:
             sudo install -m 555 argocd-linux-amd64 /usr/local/bin/argocd
             argocd version --client
 
-        # Step 3: Login to ArgoCD (local cluster access)
+        # Step 3: Login to ArgoCD (direct cluster service access)
         - name: ArgoCD Login
           run: |
             echo "🔗 Connecting to ArgoCD server in cluster..."
             
-            # Use local cluster access - no tunneling needed!
+            # Direct service access - no external connectivity needed!
             ARGOCD_SERVER="argocd-server.argocd.svc.cluster.local:443"
             ARGOCD_USERNAME="admin"
             
@@ -46,21 +46,21 @@ jobs:
               --username "$ARGOCD_USERNAME" \
               --password "$ARGOCD_PASSWORD" \
               --insecure
-          env:
-            ARGOCD_OPTS: "--insecure"
+            
+            echo "✅ Successfully connected to ArgoCD!"
 
-        # Step 4: Run argocd app diff and save output to a file
+        # Step 4: Run ArgoCD app diff
         - name: ArgoCD App Diff
           id: diff
           run: |
             echo "🔍 Running ArgoCD App Diff..."
             
-            # Real ArgoCD diff
+            # Run diff against the nginx-app
             argocd app diff nginx-app --local nginx-app 2>&1 | tee diff.txt
             
-            echo "✅ Diff generated successfully"
+            echo "✅ Diff completed successfully"
+            echo "📄 Diff output:"
             cat diff.txt
-          continue-on-error: true
 
         # Step 5: Upload the diff output as an artifact
         - name: Upload Diff Artifact
@@ -156,7 +156,7 @@ jobs:
         run: |
           echo "🔗 Connecting to ArgoCD server in cluster..."
           
-          # Use local cluster access - no tunneling needed!
+          # Direct service access - no external connectivity needed!
           ARGOCD_SERVER="argocd-server.argocd.svc.cluster.local:443"
           ARGOCD_USERNAME="admin"
           
@@ -168,8 +168,8 @@ jobs:
             --username "$ARGOCD_USERNAME" \
             --password "$ARGOCD_PASSWORD" \
             --insecure
-        env:
-          ARGOCD_OPTS: "--insecure"
+            
+          echo "✅ Successfully connected to ArgoCD!"
 
       - name: Execute ArgoCD Command
         id: execute
