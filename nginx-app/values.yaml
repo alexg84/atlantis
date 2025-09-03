@@ -1,10 +1,10 @@
-# Default values for nginx-chart.
-replicaCount: 2
+# Default values for nginx-app.
+replicaCount: 3  # Test ArgoCD workflow automation
 
 image:
   repository: nginx
   pullPolicy: IfNotPresent
-  tag: "1.25"
+  tag: "1.26"
 
 nameOverride: ""
 fullnameOverride: ""
@@ -26,11 +26,11 @@ ingress:
 
 resources:
   limits:
+    cpu: 1000m
+    memory: 256Mi
+  requests:
     cpu: 500m
     memory: 128Mi
-  requests:
-    cpu: 250m
-    memory: 64Mi
 
 autoscaling:
   enabled: false
