@@ -60,10 +60,11 @@ jobs:
             ls -la nginx-app/
             
             # Run diff against the nginx-app with correct syntax from documentation
-            # Application name: argocd/nginx-app (the ArgoCD application)
-            # Local path: ./nginx-app (the local Helm chart directory)
-            # Repo root: . (current directory as the git repository root)
-            /shared/argocd app diff argocd/nginx-app --local ./nginx-app --local-repo-root . --server-side-generate 2>&1 | tee diff.txt
+            # The key insight: ArgoCD application is configured with path="nginx-app"
+            # So when we use --local, we need to point to the directory containing that path
+            # Current working directory is the repo root, and it contains nginx-app/
+            echo "Trying diff with current directory as local repo..."
+            /shared/argocd app diff argocd/nginx-app --local . --server-side-generate 2>&1 | tee diff.txt
             
             echo "✅ Diff completed successfully"
             echo "📄 Diff output:"
