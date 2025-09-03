@@ -55,8 +55,8 @@ jobs:
           run: |
             echo "🔍 Running ArgoCD App Diff..."
             
-            # Run diff against the nginx-app
-            argocd app diff nginx-app --local nginx-app 2>&1 | tee diff.txt
+            # Run diff against the nginx-app with server-side generation
+            /shared/argocd app diff nginx-app --local nginx-app --server-side-generate 2>&1 | tee diff.txt
             
             echo "✅ Diff completed successfully"
             echo "📄 Diff output:"

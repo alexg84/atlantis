@@ -1,5 +1,5 @@
 # Default values for nginx-app.
-replicaCount: 3
+replicaCount: 2  # Changed from 1 to test ArgoCD diff
 
 image:
   repository: nginx
