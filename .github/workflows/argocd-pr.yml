@@ -52,6 +52,13 @@ jobs:
             echo "✅ Successfully connected to ArgoCD!"
             echo "🔍 Running ArgoCD App Diff..."
             
+            # Debug: show current directory and contents
+            echo "Current directory: $(pwd)"
+            echo "Directory contents:"
+            ls -la
+            echo "nginx-app directory contents:"
+            ls -la nginx-app/
+            
             # Run diff against the nginx-app with server-side generation
             /shared/argocd app diff argocd/nginx-app --local ./nginx-app --server-side-generate 2>&1 | tee diff.txt
             
