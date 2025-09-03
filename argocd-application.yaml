@@ -8,7 +8,7 @@ spec:
   source:
     repoURL: https://github.com/alexg84/atlantis
     targetRevision: main
-    path: nginx-chart
+    path: nginx-app
     helm:
       values: |
         replicaCount: 2
