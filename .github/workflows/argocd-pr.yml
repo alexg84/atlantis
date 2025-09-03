@@ -34,8 +34,8 @@ jobs:
           run: |
             echo "🔗 Connecting to ArgoCD server..."
             
-            # Hardcoded values for testing
-            ARGOCD_SERVER="a559ff07bae0.ngrok-free.app:443"
+            # Current working ngrok tunnel  
+            ARGOCD_SERVER="45e688e89f91.ngrok-free.app:443"
             ARGOCD_USERNAME="admin"
             ARGOCD_PASSWORD="wz3RtQReq9LuIHQL"
             
@@ -73,12 +73,29 @@ jobs:
               fi
             fi
             
-            # Real ArgoCD login
+            # Real ArgoCD login with gRPC-web for ngrok compatibility
             echo "🔐 Attempting ArgoCD login..."
-            argocd login "$ARGOCD_SERVER" \
-              --username "$ARGOCD_USERNAME" \
-              --password "$ARGOCD_PASSWORD" \
-              --insecure
+            export ARGOCD_OPTS="--grpc-web --insecure"
+            
+            # Try login with retry logic for ngrok
+            for i in {1..3}; do
+              echo "Login attempt $i/3..."
+              if argocd login "$ARGOCD_SERVER" \
+                --username "$ARGOCD_USERNAME" \
+                --password "$ARGOCD_PASSWORD" \
+                --insecure \
+                --grpc-web; then
+                echo "✅ Login successful!"
+                break
+              else
+                echo "❌ Login attempt $i failed"
+                if [ $i -eq 3 ]; then
+                  echo "All login attempts failed. Continuing with mock diff..."
+                  exit 1
+                fi
+                sleep 5
+              fi
+            done
           env:
             ARGOCD_OPTS: "--insecure"
 
@@ -190,7 +207,7 @@ jobs:
           echo "🔗 Connecting to ArgoCD server..."
           
           # Hardcoded values for testing
-          ARGOCD_SERVER="a559ff07bae0.ngrok-free.app:443"
+          ARGOCD_SERVER="0603af09c823.ngrok-free.app:443"
           ARGOCD_USERNAME="admin"
           ARGOCD_PASSWORD="wz3RtQReq9LuIHQL"
           
