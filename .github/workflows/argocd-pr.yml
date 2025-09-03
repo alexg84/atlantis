@@ -59,8 +59,11 @@ jobs:
             echo "nginx-app directory contents:"
             ls -la nginx-app/
             
-            # Run diff against the nginx-app with server-side generation
-            /shared/argocd app diff argocd/nginx-app --local ./nginx-app --server-side-generate 2>&1 | tee diff.txt
+            # Run diff against the nginx-app with correct syntax from documentation
+            # Application name: argocd/nginx-app (the ArgoCD application)
+            # Local path: ./nginx-app (the local Helm chart directory)
+            # Repo root: . (current directory as the git repository root)
+            /shared/argocd app diff argocd/nginx-app --local ./nginx-app --local-repo-root . --server-side-generate 2>&1 | tee diff.txt
             
             echo "✅ Diff completed successfully"
             echo "📄 Diff output:"
