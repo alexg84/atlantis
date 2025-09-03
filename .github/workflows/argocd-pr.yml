@@ -32,7 +32,7 @@ jobs:
         # Step 3: Login to ArgoCD (using server and credentials from secrets)
         - name: ArgoCD Login
           run: |
-            argocd login localhost:8080 \
+            argocd login https://9a3e19de0b18.ngrok-free.app \
               --username admin \
               --password wz3RtQReq9LuIHQL \
               --insecure
@@ -139,7 +139,7 @@ jobs:
       - name: ArgoCD Login
         if: steps.command.outputs.action != 'unknown'
         run: |
-          argocd login localhost:8080 \
+          argocd login https://9a3e19de0b18.ngrok-free.app \
             --username admin \
             --password wz3RtQReq9LuIHQL \
             --insecure
