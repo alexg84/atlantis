@@ -11,6 +11,9 @@ generated/
 .minikube-ready
 .minikube-status
 
+# Kubernetes runner configs (contains secrets)
+k8s-runner/
+
 # Logs
 logs/
 *.log
