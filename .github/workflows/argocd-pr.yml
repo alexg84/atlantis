@@ -32,14 +32,12 @@ jobs:
         # Step 3: Login to ArgoCD (using server and credentials from secrets)
         - name: ArgoCD Login
           run: |
-            argocd login f1da20b9bdcd.ngrok-free.app:80 \
+            argocd login adf570a01b0f.ngrok-free.app:443 \
               --username admin \
               --password wz3RtQReq9LuIHQL \
-              --insecure \
-              --plaintext \
-              --grpc-web
+              --insecure
           env:
-            ARGOCD_OPTS: "--grpc-web"
+            ARGOCD_OPTS: "--insecure"
 
         # Step 4: Run argocd app diff and save output to a file
         - name: ArgoCD App Diff
@@ -141,14 +139,12 @@ jobs:
       - name: ArgoCD Login
         if: steps.command.outputs.action != 'unknown'
         run: |
-          argocd login f1da20b9bdcd.ngrok-free.app:80 \
+          argocd login adf570a01b0f.ngrok-free.app:443 \
             --username admin \
             --password wz3RtQReq9LuIHQL \
-            --insecure \
-            --plaintext \
-            --grpc-web
+            --insecure
         env:
-          ARGOCD_OPTS: "--grpc-web"
+          ARGOCD_OPTS: "--insecure"
 
       - name: Execute ArgoCD Command
         id: execute
